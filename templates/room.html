@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=div, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'Chat_Django/style2.css' %}">
+    <script   src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
+    <title></title>
+</head>
+<body>
+    <script>
+        $(document).ready(function(){
+            var display = $("#display");
+            setInterval(function(){
+                $.ajax({
+                    type: 'GET',
+                    url : "/getMessages/{{room}}/",
+                    success: function(response){
+                        console.log(response);
+                        var isAtBottom = display.scrollTop() + display.innerHeight() >= display[0].scrollHeight;
+                        $("#display").empty();
+                        
+                        if (response.messages.length === 0) {
+                            // Si aucune message n'est retourné, affiche un message indiquant qu'aucun message n'est encore présent
+                            $("#display").append("<p>Aucun message n'est encore présent</p>");
+                        } else {
+                        for (var key in response.messages)
+                        {
+                            var rawDate = new Date(response.messages[key].date);
+                            var formattedDate = rawDate.toLocaleString('fr-FR', {day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit'});
+                            var temp="<div class='darker'><b>"+response.messages[key].user+"</b><p>"+response.messages[key].value+"</p><span>"+formattedDate+"</span></div>";
+                            $("#display").append(temp);
+                        }
+                    }
+                        // Scroll to the bottom of the chat window if the user is already at the bottom
+                        if (isAtBottom) {
+                            $("#display").scrollTop($("#display")[0].scrollHeight);
+                        }
+                    },
+                    error: function(response){
+                        alert('An error occured')
+                    }
+                });
+            },500);
+        });
+        
+    </script>
+    <script src="{% static 'Chat_Django/script.js' %}"></script>
+    <h2 class="title"> {{room}} - Groupe <a href="link" href="{% url 'home' %}"> Change Group</a></h2>
+    <div id="display">
+       <p> Aucun message présent</p>
+    </div>
+
+    <div class="container">
+        <form id="post-form">
+            {% csrf_token %}
+            <input type="hidden" name="username" id="username" value="{{username}}">
+            <input type="hidden" name="room_id" id="room_id" value="{{room_details.id}}">
+            <input type="text" name="message" id="message" width="100px">
+            <input type="submit" value="Send" >
+        </form>
+    </div>
+    <script src="{% static 'Chat_Django/scripttext.js' %}" type="text/javascript"></script>
+</body>
+</html>
